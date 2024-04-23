@@ -17,12 +17,27 @@ app.post("/transactions", async (req: Request, response: Response) => {
       req.body.payment_method,
     ]
   );
-  const transactions = await connection.query("select * from igor.transaction");
-  console.log(transactions);
+  // const transactions = await connection.query("select * from igor.transaction");
+  // console.log(transactions);
   await connection.$pool.end();
 
   console.log(req.body);
   response.end();
+});
+
+app.get("/transactions/:code", async (req: Request, response: Response) => {
+  const connection = pgp()(
+    "postgres://postgres:123456@localhost:5432/products-api"
+  );
+  const transaction = await connection.one(
+    "select * from igor.transaction where code = $1",
+    [req.params.code]
+  );
+  console.log(transaction);
+  transaction.amount = parseFloat(transaction.amount);
+  transaction.payment_method = transaction.payment_method;
+  await connection.$pool.end();
+  response.json(transaction);
 });
 
 app.listen(3000);
